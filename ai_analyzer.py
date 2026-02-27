@@ -1,39 +1,25 @@
 import requests
-import streamlit as st
 
-HF_API_KEY = st.secrets["HF_API_KEY"]
+BASE_API = "https://www.tmd.go.th/api/weather/aws/province/"
 
-API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
+def get_weather_data(province_slug):
+    url = BASE_API + province_slug
 
-headers = {
-    "Authorization": f"Bearer {HF_API_KEY}",
-    "Content-Type": "application/json"
-}
+    try:
+        response = requests.get(url)
+        data = response.json()
 
-def analyze_weather(weather_info):
+        weather_info = {
+            "temperature": str(data.get("temperature", "N/A")),
+            "totalraintoday": str(data.get("rain_24h", "0")),
+            "humidity": str(data.get("humidity", "N/A"))
+        }
 
-    prompt = f"""
-    วิเคราะห์ข้อมูลสภาพอากาศ:
-    อุณหภูมิ : {weather_info['temperature']}
-    ฝนสะสมวันนี้ : {weather_info['totalraintoday']}
-    ความชื้นสัมพัทธ์ : {weather_info['humidity']}
+        return weather_info
 
-    ประเมินความเสี่ยงและให้คำแนะนำ
-    """
-
-    payload = {
-        "inputs": prompt
-    }
-
-    response = requests.post(API_URL, headers=headers, json=payload)
-
-    # เช็ค error
-    if response.status_code != 200:
-        return f"เกิดข้อผิดพลาด: {response.text}"
-
-    result = response.json()
-
-    if isinstance(result, list):
-        return result[0]["generated_text"]
-    else:
-        return str(result)
+    except Exception as e:
+        return {
+            "temperature": "N/A",
+            "totalraintoday": "0",
+            "humidity": "N/A"
+        }
