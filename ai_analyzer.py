@@ -9,9 +9,9 @@ def analyze_weather(weather_data):
 
     prompt = f"""
     วิเคราะห์ข้อมูลสภาพอากาศ:
-    อุณหภูมิ: {weather_data['temperature']}
-    ปริมาณฝน: {weather_data['rainfall']}
-    รายละเอียด: {weather_data['description']}
+    อุณหภูมิ : {weather_data['temperature']}
+    ฝนสะสมวันนี้ : {weather_data['totalraintoday']}
+    ความชื้นสัมพัทธ์ : {weather_data['humidity']}
 
     ประเมินความเสี่ยงและให้คำแนะนำ
     """
