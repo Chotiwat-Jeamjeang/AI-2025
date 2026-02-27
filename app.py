@@ -2,18 +2,12 @@ import streamlit as st
 import requests
 
 # =========================
-# 🔐 API KEYS (ใส่ใน secrets.toml)
+# 🔐 OpenWeather API KEY (ใส่ใน secrets.toml)
 # =========================
 OPENWEATHER_API_KEY = st.secrets["OPENWEATHER_API_KEY"]
-HF_API_KEY = st.secrets["HF_API_KEY"]
-
-#HF_MODEL = "google/gemma-2b-it"
-#HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
-HF_MODEL = "HuggingFaceH4/zephyr-7b-beta"
-HF_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL}"
 
 # =========================
-# 🌍 77 จังหวัด (lat/lon)
+# 🌍 จังหวัด (ตัวอย่างหลัก ๆ เพิ่มได้เอง)
 # =========================
 PROVINCES = {
     "กรุงเทพมหานคร": {"lat": 13.7563, "lon": 100.5018},
@@ -92,40 +86,42 @@ def get_weather(lat, lon):
 
 
 # =========================
-# 🤖 วิเคราะห์ด้วย AI
+# 🤖 AI จำลอง (Rule-based Risk Engine)
 # =========================
 def analyze_weather(temp, humidity, rain):
 
-    prompt = f"""
-    วิเคราะห์ความเสี่ยงสุขภาพจากสภาพอากาศ:
-    อุณหภูมิ {temp}°C
-    ความชื้น {humidity}%
-    ปริมาณฝน {rain} mm
+    score = 0
 
-    ตอบสั้น ๆ ระบุระดับความเสี่ยง (ต่ำ/กลาง/สูง) พร้อมคำแนะนำ
-    """
+    # อุณหภูมิ
+    if temp > 35:
+        score += 2
+    elif temp > 32:
+        score += 1
 
-    headers = {
-        "Authorization": f"Bearer {HF_API_KEY}",
-        "Content-Type": "application/json",
-    }
+    # ความชื้น
+    if humidity > 85:
+        score += 2
+    elif humidity > 75:
+        score += 1
 
-    payload = {
-        "inputs": prompt,
-        "parameters": {"max_new_tokens": 150}
-    }
+    # ปริมาณฝน
+    if rain > 20:
+        score += 3
+    elif rain > 5:
+        score += 1
 
-    response = requests.post(HF_URL, headers=headers, json=payload)
+    # แปลงคะแนนเป็นระดับความเสี่ยง
+    if score >= 5:
+        level = "🔴 ความเสี่ยงสูง"
+        advice = "ควรหลีกเลี่ยงกิจกรรมกลางแจ้ง ระวังน้ำท่วม และดูแลสุขภาพ"
+    elif score >= 3:
+        level = "🟠 ความเสี่ยงปานกลาง"
+        advice = "ควรเตรียมร่ม ดื่มน้ำมาก ๆ และติดตามพยากรณ์อากาศ"
+    else:
+        level = "🟢 ความเสี่ยงต่ำ"
+        advice = "สภาพอากาศปกติ สามารถทำกิจกรรมได้ตามปกติ"
 
-    if response.status_code != 200:
-        return f"❌ HF Error {response.status_code}: {response.text}"
-
-    result = response.json()
-
-    if isinstance(result, list):
-        return result[0].get("generated_text", "ไม่สามารถวิเคราะห์ได้")
-
-    return str(result)
+    return level, advice
 
 
 # =========================
@@ -133,30 +129,31 @@ def analyze_weather(temp, humidity, rain):
 # =========================
 st.set_page_config(page_title="AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
 
-st.title("🌦 AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
+st.title("🌦 AI วิเคราะห์ความเสี่ยงสภาพอากาศ (ไม่ใช้ API AI)")
 
 province = st.selectbox("เลือกจังหวัด", list(PROVINCES.keys()))
 
-lat = PROVINCES[province]["lat"]
-lon = PROVINCES[province]["lon"]
+if st.button("วิเคราะห์สภาพอากาศ"):
 
-weather, error = get_weather(lat, lon)
+    lat = PROVINCES[province]["lat"]
+    lon = PROVINCES[province]["lon"]
 
-if error:
-    st.error(f"Error: {error}")
-else:
-    st.subheader("📊 ข้อมูลปัจจุบัน")
-    st.write(f"🌡 อุณหภูมิ: {weather['temperature']} °C")
-    st.write(f"💧 ความชื้น: {weather['humidity']} %")
-    st.write(f"🌧 ฝน 1 ชม.: {weather['rain']} mm")
+    weather, error = get_weather(lat, lon)
 
-    if st.button("วิเคราะห์ความเสี่ยงด้วย AI"):
-        with st.spinner("กำลังวิเคราะห์..."):
-            result = analyze_weather(
-                weather["temperature"],
-                weather["humidity"],
-                weather["rain"]
-            )
+    if error:
+        st.error(f"❌ ไม่สามารถดึงข้อมูลสภาพอากาศได้: {error}")
+    else:
+        st.subheader("📊 ข้อมูลปัจจุบัน")
+        st.write(f"🌡 อุณหภูมิ: {weather['temperature']} °C")
+        st.write(f"💧 ความชื้น: {weather['humidity']} %")
+        st.write(f"🌧 ฝน 1 ชม.: {weather['rain']} mm")
 
-        st.subheader("📈 ผลการวิเคราะห์ AI")
-        st.write(result)
+        level, advice = analyze_weather(
+            weather["temperature"],
+            weather["humidity"],
+            weather["rain"]
+        )
+
+        st.subheader("📈 ผลการวิเคราะห์ความเสี่ยง")
+        st.write(level)
+        st.info(advice)
