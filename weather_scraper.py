@@ -1,25 +1,24 @@
 import requests
+import streamlit as st
 
-BASE_API = "https://www.tmd.go.th/weather/province/"
+API_KEY = st.secrets["OPENWEATHER_API_KEY"]
 
-def get_weather_data(province_slug):
-    url = BASE_API + province_slug
+def get_weather_data(lat, lon):
 
-    try:
-        response = requests.get(url)
-        data = response.json()
+    url = (
+        "https://api.openweathermap.org/data/2.5/weather"
+        f"?lat={lat}&lon={lon}"
+        f"&appid={API_KEY}"
+        "&units=metric"
+    )
 
-        weather_info = {
-            "temperature": str(data.get("temperature", "N/A")),
-            "totalraintoday": str(data.get("rain_24h", "0")),
-            "humidity": str(data.get("humidity", "N/A"))
-        }
+    response = requests.get(url)
+    data = response.json()
 
-        return weather_info
+    weather_info = {
+        "temperature": data["main"]["temp"],
+        "humidity": data["main"]["humidity"],
+        "totalraintoday": data.get("rain", {}).get("1h", 0)
+    }
 
-    except Exception as e:
-        return {
-            "temperature": "N/A",
-            "totalraintoday": "0",
-            "humidity": "N/A"
-        }
+    return weather_info
