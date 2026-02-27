@@ -27,8 +27,13 @@ def analyze_weather(weather_info):
 
     response = requests.post(API_URL, headers=headers, json=payload)
 
-    if response
-er`
+    # เช็ค error
+    if response.status_code != 200:
+        return f"เกิดข้อผิดพลาด: {response.text}"
 
     result = response.json()
-    return result[0]["generated_text"]
+
+    if isinstance(result, list):
+        return result[0]["generated_text"]
+    else:
+        return str(result)
