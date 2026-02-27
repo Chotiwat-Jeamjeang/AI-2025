@@ -1,9 +1,13 @@
 import requests
 import streamlit as st
 
-API_URL = "https://router.huggingface.co"
+HF_API_KEY = st.secrets["HF_API_KEY"]
+
+API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
+
 headers = {
-    "Authorization": f"Bearer {st.secrets['HF_TOKEN']}"
+    "Authorization": f"Bearer {HF_API_KEY}",
+    "Content-Type": "application/json"
 }
 
 def analyze_weather(weather_info):
@@ -18,17 +22,13 @@ def analyze_weather(weather_info):
     """
 
     payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 300,
-            "temperature": 0.4
-        }
+        "inputs": prompt
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
 
-    if response.status_code != 200:
-        return f"เกิดข้อผิดพลาด: {response.text}"
+    if response
+er`
 
     result = response.json()
     return result[0]["generated_text"]
