@@ -1,16 +1,21 @@
 import streamlit as st
 import requests
-from ai_analyzer import analyze_weather
 
-# -----------------------------
-# 🔐 ใส่ OpenWeather API Key ใน Secrets
-# -----------------------------
-API_KEY = st.secrets["OPENWEATHER_API_KEY"]
+# =========================
+# 🔐 API KEYS (ใส่ใน secrets.toml)
+# =========================
+OPENWEATHER_API_KEY = st.secrets["OPENWEATHER_API_KEY"]
+HF_API_KEY = st.secrets["HF_API_KEY"]
 
-# -----------------------------
-# 🌏 พิกัด 77 จังหวัด (ตัวอย่างหลัก ๆ + ใช้ครบได้)
-# -----------------------------
-provinces = {
+#HF_MODEL = "google/gemma-2b-it"
+#HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+HF_MODEL = "HuggingFaceH4/zephyr-7b-beta"
+HF_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL}"
+
+# =========================
+# 🌍 77 จังหวัด (lat/lon)
+# =========================
+PROVINCES = {
     "กรุงเทพมหานคร": {"lat": 13.7563, "lon": 100.5018},
     "เชียงใหม่": {"lat": 18.7883, "lon": 98.9853},
     "เชียงราย": {"lat": 19.9105, "lon": 99.8406},
@@ -58,46 +63,100 @@ provinces = {
     "ตราด": {"lat": 12.2428, "lon": 102.5170}
 }
 
-# -----------------------------
+# =========================
+# 🌤 ดึงข้อมูลอากาศ
+# =========================
+def get_weather(lat, lon):
+    url = (
+        f"https://api.openweathermap.org/data/2.5/weather"
+        f"?lat={lat}&lon={lon}"
+        f"&appid={OPENWEATHER_API_KEY}"
+        f"&units=metric"
+        f"&lang=th"
+    )
+
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return None, response.text
+
+    data = response.json()
+
+    weather = {
+        "temperature": data["main"]["temp"],
+        "humidity": data["main"]["humidity"],
+        "rain": data.get("rain", {}).get("1h", 0)
+    }
+
+    return weather, None
+
+
+# =========================
+# 🤖 วิเคราะห์ด้วย AI
+# =========================
+def analyze_weather(temp, humidity, rain):
+
+    prompt = f"""
+    วิเคราะห์ความเสี่ยงสุขภาพจากสภาพอากาศ:
+    อุณหภูมิ {temp}°C
+    ความชื้น {humidity}%
+    ปริมาณฝน {rain} mm
+
+    ตอบสั้น ๆ ระบุระดับความเสี่ยง (ต่ำ/กลาง/สูง) พร้อมคำแนะนำ
+    """
+
+    headers = {
+        "Authorization": f"Bearer {HF_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "inputs": prompt,
+        "parameters": {"max_new_tokens": 150}
+    }
+
+    response = requests.post(HF_URL, headers=headers, json=payload)
+
+    if response.status_code != 200:
+        return f"❌ HF Error {response.status_code}: {response.text}"
+
+    result = response.json()
+
+    if isinstance(result, list):
+        return result[0].get("generated_text", "ไม่สามารถวิเคราะห์ได้")
+
+    return str(result)
+
+
+# =========================
 # 🎨 UI
-# -----------------------------
-st.set_page_config(page_title="AI Weather Risk", layout="centered")
+# =========================
+st.set_page_config(page_title="AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
+
 st.title("🌦 AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
 
-province = st.selectbox("เลือกจังหวัด", list(provinces.keys()))
+province = st.selectbox("เลือกจังหวัด", list(PROVINCES.keys()))
 
-lat, lon = provinces[province]
+lat = PROVINCES[province]["lat"]
+lon = PROVINCES[province]["lon"]
 
-# -----------------------------
-# 🌤 ดึงข้อมูล OpenWeather
-# -----------------------------
-url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
+weather, error = get_weather(lat, lon)
 
-response = requests.get(url)
+if error:
+    st.error(f"Error: {error}")
+else:
+    st.subheader("📊 ข้อมูลปัจจุบัน")
+    st.write(f"🌡 อุณหภูมิ: {weather['temperature']} °C")
+    st.write(f"💧 ความชื้น: {weather['humidity']} %")
+    st.write(f"🌧 ฝน 1 ชม.: {weather['rain']} mm")
 
-if response.status_code != 200:
-    st.error("❌ ไม่สามารถดึงข้อมูลสภาพอากาศได้")
-    st.stop()
+    if st.button("วิเคราะห์ความเสี่ยงด้วย AI"):
+        with st.spinner("กำลังวิเคราะห์..."):
+            result = analyze_weather(
+                weather["temperature"],
+                weather["humidity"],
+                weather["rain"]
+            )
 
-data = response.json()
-
-# -----------------------------
-# 📊 จัดรูปแบบข้อมูล
-# -----------------------------
-weather_data = {
-    "temperature": data["main"]["temp"],
-    "humidity": data["main"]["humidity"],
-    "rain": data.get("rain", {}).get("1h", 0)
-}
-
-st.subheader("📊 ข้อมูลปัจจุบัน")
-st.write(f"🌡 อุณหภูมิ: {weather_data['temperature']} °C")
-st.write(f"💧 ความชื้น: {weather_data['humidity']} %")
-st.write(f"🌧 ฝน 1 ชม.: {weather_data['rain']} mm")
-
-# -----------------------------
-# 🤖 วิเคราะห์ด้วย AI
-# -----------------------------
-if st.button("วิเคราะห์ความเสี่ยงด้วย AI"):
-    result = analyze_weather(weather_data)
-    st.markdown(result)
+        st.subheader("📈 ผลการวิเคราะห์ AI")
+        st.write(result)
