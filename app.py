@@ -8,7 +8,8 @@ OPENWEATHER_API_KEY = st.secrets["OPENWEATHER_API_KEY"]
 HF_API_KEY = st.secrets["HF_API_KEY"]
 
 #HF_MODEL = "google/gemma-2b-it"
-HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+#HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+HF_MODEL = "HuggingFaceH4/zephyr-7b-beta"
 HF_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL}"
 
 # =========================
