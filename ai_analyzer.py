@@ -1,7 +1,7 @@
 import requests
 import streamlit as st
 
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+API_URL = "https://router.huggingface.co"
 headers = {
     "Authorization": f"Bearer {st.secrets['HF_TOKEN']}"
 }
