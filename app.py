@@ -1,30 +1,29 @@
 import streamlit as st
-import json
 from weather_scraper import get_weather_data
 from ai_analyzer import analyze_weather
 
 st.set_page_config(
     page_title="AI Weather Risk",
+    page_icon="🌧️",
     layout="centered"
 )
 
-st.title("🌧️ AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
+st.title("🌦️ AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
 
-with open("provinces.json") as f:
-    provinces = json.load(f)
+# ตัวอย่างกรุงเทพ
+lat = 13.7563
+lon = 100.5018
 
-province = st.selectbox("เลือกจังหวัด", list(provinces.keys()))
+if st.button("วิเคราะห์สภาพอากาศ"):
 
-if st.button("วิเคราะห์"):
-    slug = provinces[province]
+    weather_info = get_weather_data(lat, lon)
 
-    with st.spinner("กำลังดึงข้อมูล..."):
-        data = get_weather_data(slug)
+    st.subheader("ข้อมูลปัจจุบัน")
+    st.write(f"🌡️ อุณหภูมิ: {weather_info['temperature']} °C")
+    st.write(f"💧 ความชื้น: {weather_info['humidity']} %")
+    st.write(f"🌧️ ฝน 1 ชม.: {weather_info['totalraintoday']} mm")
 
-    st.write("ข้อมูลล่าสุด:", data)
+    result = analyze_weather(weather_info)
 
-    with st.spinner("AI กำลังวิเคราะห์..."):
-        result = analyze_weather(data)
-
-    st.markdown("### ผลวิเคราะห์")
+    st.subheader("📊 ผลการวิเคราะห์ AI")
     st.write(result)
