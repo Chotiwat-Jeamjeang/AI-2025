@@ -1,25 +1,37 @@
 import requests
+import streamlit as st
 
-BASE_API = "https://www.tmd.go.th/api/weather/aws/province/"
+HF_API_KEY = st.secrets["HF_API_KEY"]
 
-def get_weather_data(province_slug):
-    url = BASE_API + province_slug
+API_URL = "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.2"
 
-    try:
-        response = requests.get(url)
-        data = response.json()
+headers = {
+    "Authorization": f"Bearer {HF_API_KEY}",
+    "Content-Type": "application/json"
+}
 
-        weather_info = {
-            "temperature": str(data.get("temperature", "N/A")),
-            "totalraintoday": str(data.get("rain_24h", "0")),
-            "humidity": str(data.get("humidity", "N/A"))
+def analyze_weather(weather_info):
+
+    prompt = f"""
+    วิเคราะห์ข้อมูล:
+    อุณหภูมิ: {weather_info['temperature']}
+    ฝนสะสมวันนี้: {weather_info['totalraintoday']}
+    ความชื้น: {weather_info['humidity']}
+
+    ประเมินความเสี่ยงและให้คำแนะนำ
+    """
+
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": 200
         }
+    }
 
-        return weather_info
+    response = requests.post(API_URL, headers=headers, json=payload)
 
-    except Exception as e:
-        return {
-            "temperature": "N/A",
-            "totalraintoday": "0",
-            "humidity": "N/A"
-        }
+    if response.status_code == 200:
+        result = response.json()
+        return result[0]["generated_text"]
+
+    return "ไม่สามารถวิเคราะห์ได้"
