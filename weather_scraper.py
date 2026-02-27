@@ -1,6 +1,6 @@
 import requests
 
-BASE_API = "https://www.tmd.go.th/api/weather/aws/province/"
+BASE_API = "https://www.tmd.go.th/weather/province/"
 
 def get_weather_data(province_slug):
     url = BASE_API + province_slug
