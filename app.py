@@ -114,7 +114,7 @@ def analyze_weather(weather):
 # 🎨 UI
 # =========================
 st.set_page_config(page_title="AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
-st.title("🌦 AI วิเคราะห์ความเสี่ยงสภาพอากาศ (ไม่ใช้ AI API)")
+st.title("🌦 AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
 
 province = st.selectbox("เลือกจังหวัด", list(PROVINCES.keys()))
 
