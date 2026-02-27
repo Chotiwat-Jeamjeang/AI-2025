@@ -5,7 +5,7 @@ client = OpenAI(
     api_key=st.secrets["OPENAI_API_KEY"]
 )
 
-def analyze_weather(weather_data):
+def analyze_weather(weather_info):
 
     prompt = f"""
     วิเคราะห์ข้อมูลสภาพอากาศ:
