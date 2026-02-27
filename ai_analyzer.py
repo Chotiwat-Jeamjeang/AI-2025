@@ -1,22 +1,34 @@
-from google import genai
+import requests
 import streamlit as st
 
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+headers = {
+    "Authorization": f"Bearer {st.secrets['HF_TOKEN']}"
+}
 
 def analyze_weather(weather_info):
 
     prompt = f"""
     วิเคราะห์ข้อมูลสภาพอากาศ:
-    อุณหภูมิ: {weather_info.get('temperature')}
-    ฝนสะสมวันนี้: {weather_info.get('totalraintoday')}
-    ความชื้น: {weather_info.get('humidity')}
+    อุณหภูมิ : {weather_info['temperature']}
+    ฝนสะสมวันนี้ : {weather_info['totalraintoday']}
+    ความชื้นสัมพัทธ์ : {weather_info['humidity']}
 
-    ประเมินความเสี่ยงและให้คำแนะนำสั้น ๆ
+    ประเมินความเสี่ยงและให้คำแนะนำ
     """
 
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt,
-    )
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": 300,
+            "temperature": 0.4
+        }
+    }
 
-    return response.text
+    response = requests.post(API_URL, headers=headers, json=payload)
+
+    if response.status_code != 200:
+        return f"เกิดข้อผิดพลาด: {response.text}"
+
+    result = response.json()
+    return result[0]["generated_text"]
