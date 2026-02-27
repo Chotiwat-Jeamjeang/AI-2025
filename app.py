@@ -4,7 +4,7 @@ import requests
 # =========================
 # 🔐 OpenWeather API KEY (ใส่ใน secrets.toml)
 # =========================
-OPENWEATHER_API_KEY = st.secrets["OPENWEATHER_API_KEY"]
+API_KEY = st.secrets["OPENWEATHER_API_KEY"]
 
 # =========================
 # 🌍 จังหวัด (ตัวอย่างหลัก ๆ เพิ่มได้เอง)
@@ -61,14 +61,8 @@ PROVINCES = {
 # 🌤 ดึงข้อมูลอากาศ
 # =========================
 def get_weather(lat, lon):
-    url = (
-        f"https://api.openweathermap.org/data/2.5/weather"
-        f"?lat={lat}&lon={lon}"
-        f"&appid={OPENWEATHER_API_KEY}"
-        f"&units=metric"
-        f"&lang=th"
-    )
-
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
+    
     response = requests.get(url)
 
     if response.status_code != 200:
