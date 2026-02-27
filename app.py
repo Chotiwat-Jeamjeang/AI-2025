@@ -160,7 +160,3 @@ else:
 
         st.subheader("📈 ผลการวิเคราะห์ AI")
         st.write(result)
-
-response = requests.post(HF_URL, headers=headers, json=payload)
-print(response.status_code)
-print(response.text)
