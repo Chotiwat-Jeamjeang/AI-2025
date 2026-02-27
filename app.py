@@ -66,7 +66,8 @@ def get_weather(lat, lon):
     response = requests.get(url)
 
     if response.status_code != 200:
-        return None, response.text
+    st.error("❌ ไม่สามารถดึงข้อมูลสภาพอากาศได้")
+    st.stop()
 
     data = response.json()
 
@@ -75,7 +76,6 @@ def get_weather(lat, lon):
         "humidity": data["main"]["humidity"],
         "rain": data.get("rain", {}).get("1h", 0)
     }
-
     return weather, None
 
 
@@ -83,27 +83,22 @@ def get_weather(lat, lon):
 # 🤖 AI จำลอง (Rule-based Risk Engine)
 # =========================
 def analyze_weather(temp, humidity, rain):
-
     score = 0
-
     # อุณหภูมิ
     if temp > 35:
         score += 2
     elif temp > 32:
         score += 1
-
     # ความชื้น
     if humidity > 85:
         score += 2
     elif humidity > 75:
         score += 1
-
     # ปริมาณฝน
     if rain > 20:
         score += 3
     elif rain > 5:
         score += 1
-
     # แปลงคะแนนเป็นระดับความเสี่ยง
     if score >= 5:
         level = "🔴 ความเสี่ยงสูง"
@@ -114,24 +109,17 @@ def analyze_weather(temp, humidity, rain):
     else:
         level = "🟢 ความเสี่ยงต่ำ"
         advice = "สภาพอากาศปกติ สามารถทำกิจกรรมได้ตามปกติ"
-
     return level, advice
-
-
 # =========================
 # 🎨 UI
 # =========================
 st.set_page_config(page_title="AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
-
 st.title("🌦 AI วิเคราะห์ความเสี่ยงสภาพอากาศ")
 
 province = st.selectbox("เลือกจังหวัด", list(PROVINCES.keys()))
-
 if st.button("วิเคราะห์สภาพอากาศ"):
-
     lat = PROVINCES[province]["lat"]
     lon = PROVINCES[province]["lon"]
-
     weather, error = get_weather(lat, lon)
 
     if error:
@@ -151,3 +139,8 @@ if st.button("วิเคราะห์สภาพอากาศ"):
         st.subheader("📈 ผลการวิเคราะห์ความเสี่ยง")
         st.write(level)
         st.info(advice)
+get_weather(lat, lon)
+st.subheader("📊 ข้อมูลปัจจุบัน")
+st.write(f"🌡 อุณหภูมิ: {weather_data['temperature']} °C")
+st.write(f"💧 ความชื้น: {weather_data['humidity']} %")
+st.write(f"🌧 ฝน 1 ชม.: {weather_data['rain']} mm")
