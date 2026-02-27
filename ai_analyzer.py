@@ -1,45 +1,50 @@
-import requests
-import streamlit as st
+def analyze_weather(weather):
 
-HF_API_KEY = st.secrets["HF_API_KEY"]
+    temp = float(weather["temperature"])
+    humidity = float(weather["humidity"])
+    rain = float(weather["rain"])
 
-API_URL = "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.2"
+    risk_score = 0
 
-headers = {
-    "Authorization": f"Bearer {HF_API_KEY}",
-    "Content-Type": "application/json"
-}
+    # ประเมินอุณหภูมิ
+    if temp >= 38:
+        risk_score += 3
+    elif temp >= 35:
+        risk_score += 2
+    elif temp >= 32:
+        risk_score += 1
 
-def analyze_weather(weather_info):
+    # ประเมินความชื้น
+    if humidity >= 85:
+        risk_score += 2
+    elif humidity >= 70:
+        risk_score += 1
 
-    prompt = f"""
-คุณเป็นผู้เชี่ยวชาญด้านอุตุนิยมวิทยา
+    # ประเมินฝน
+    if rain >= 50:
+        risk_score += 3
+    elif rain >= 20:
+        risk_score += 2
+    elif rain > 0:
+        risk_score += 1
 
-ข้อมูลสภาพอากาศ:
-- อุณหภูมิ: {weather_info['temperature']} °C
-- ปริมาณฝน 1 วัน: {weather_info['totalraintoday']} mm
-- ความชื้น: {weather_info['humidity']} %
-
-กรุณา:
-1. ประเมินระดับความเสี่ยง (ต่ำ / ปานกลาง / สูง)
-2. อธิบายเหตุผล
-3. ให้คำแนะนำประชาชน
-
-ตอบเป็นภาษาไทย
-"""
-
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 300,
-            "temperature": 0.3
-        }
-    }
-
-    response = requests.post(API_URL, headers=headers, json=payload)
-
-    if response.status_code == 200:
-        result = response.json()
-        return result[0]["generated_text"]
+    # สรุประดับความเสี่ยง
+    if risk_score >= 6:
+        level = "🔴 ความเสี่ยงสูง"
+        advice = "ควรหลีกเลี่ยงกิจกรรมกลางแจ้ง และติดตามประกาศเตือนภัย"
+    elif risk_score >= 3:
+        level = "🟡 ความเสี่ยงปานกลาง"
+        advice = "ควรเตรียมอุปกรณ์กันฝนและดูแลสุขภาพ"
     else:
-        return f"เกิดข้อผิดพลาด: {response.text}"
+        level = "🟢 ความเสี่ยงต่ำ"
+        advice = "สภาพอากาศปกติ สามารถทำกิจกรรมได้"
+
+    return f"""
+### 📊 ระดับความเสี่ยง: {level}
+
+🌡 อุณหภูมิ: {temp} °C  
+💧 ความชื้น: {humidity} %  
+🌧 ปริมาณฝน: {rain} mm  
+
+💡 คำแนะนำ: {advice}
+"""
