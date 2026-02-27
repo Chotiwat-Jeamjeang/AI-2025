@@ -13,17 +13,17 @@ def get_weather_data(province_slug):
     weather_info = {}
 
     try:
-        weather_info["temperature"] = soup.find("label", class_="lblAwsTemperature").text.strip()
+        weather_info["temperature"] = soup.find("label", id_="lblAwsTemperature").text.strip()
     except:
         weather_info["temperature"] = "N/A"
 
     try:
-        weather_info["totalraintoday"] = soup.find("label", class_="lblAwsRainFrom7AM").text.strip()
+        weather_info["totalraintoday"] = soup.find("label", id_="lblAwsRainFrom7AM").text.strip()
     except:
         weather_info["totalraintoday"] = "N/A"
 
     try:
-        weather_info["humidity"] = soup.find("label", class_="lblAwsHumidity").text.strip()
+        weather_info["humidity"] = soup.find("label", id_="lblAwsHumidity").text.strip()
     except:
         weather_info["humidity"] = "N/A"
 
