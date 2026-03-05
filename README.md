@@ -2,8 +2,7 @@
 
 โปรเจครายวิชาการคิดเชิงออกแบบสำหรับวิทยาการข้อมูล เรื่อง **ระบบวิเคราะห์ความเสี่ยงจากสภาพอากาศด้วย AI ขนาดเล็ก**
 
-<img width="1278" height="570" alt="image" src="https://github.com/user-attachments/assets/example-weather-dashboard.png" />
-
+<img width="1163" height="624" alt="image" src="https://github.com/user-attachments/assets/8bc95901-60f6-47e5-b0d1-95674937c81d" />
 ---
 
 ## 🌦️ ระบบวิเคราะห์ความเสี่ยงสภาพอากาศ (AI Weather Risk Analysis System)
