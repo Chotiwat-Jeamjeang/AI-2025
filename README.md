@@ -89,7 +89,7 @@ git clone [https://github.com/Chotiwat-Jeamjeang/AI.git](https://github.com/Chot
 ## 🌐 เว็บไซต์ตัวอย่าง (Live Demo)
 
 ```
-[https://your-username.github.io/AI-Weather-Risk-Analysis/](https://ai-2025-6663.streamlit.app)
+https://ai-2025-6663.streamlit.app/
 ```
 ---
 
